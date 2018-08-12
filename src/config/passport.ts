@@ -17,11 +17,9 @@ export default (passport) => {
    */
   passport.deserializeUser(async (id, done) => {
     try {
-      const user = await usersController.getUserById(id);
+      const user: IUserDocument = await usersController.getUserById(id);
 
-      if (user) {
-        return done(null, user);
-      }
+      return done(null, user);
     } catch (error) {
       return done(error, null)
     }
@@ -43,26 +41,22 @@ export default (passport) => {
         const user: IUserDocument = await usersController.getUserByFacebookId(profile.id);
 
         // If the user is found, then log him in.
-        if (user) {
-          return done(null, user);
-        } else {
-          // If there is no user found with that facebook id, then create a new one.
-          const newUser: IUser = {
-            // Set all of the facebook information in our user model.
-            facebook: {
-              id: profile.id,
-              token: token,
-              name: profile.displayName,
-              email: profile.emails[0].value,
-            },
-          };
-
-          let account = await usersController.createAccount(newUser);
-
-          return done(null, newUser);
-        }
+        return done(null, user);
       } catch (error) {
-        return done(error);
+        // If there is no user found with that facebook id, then create a new one.
+        const newUser: IUser = {
+          // Set all of the facebook information in our user model.
+          facebook: {
+            id: profile.id,
+            token: token,
+            name: profile.displayName,
+            email: profile.emails[0].value,
+          },
+        };
+
+        let account = await usersController.createAccount(newUser);
+
+        return done(null, account);
       }
     }
   ));
